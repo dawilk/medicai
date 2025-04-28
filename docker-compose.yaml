@@ -1,0 +1,29 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7860:7860"
+    depends_on:
+      - ollama
+    environment:
+      - OLLAMA_API_URL=http://ollama:11434/api/chat
+      - GRADIO_SERVER_NAME=0.0.0.0
+      - GRADIO_SERVER_PORT=7860
+
+  ollama:
+    image: ollama/ollama:latest
+    # NOTE: This is not using gpus in order to work with any machine. You can
+    # get significantly better performance by using GPUs. To do this, you need to
+    # meet prerequisites: https://docs.docker.com/engine/containers/resource_constraints/#gpu
+    # and then update this service configuration: https://docs.docker.com/compose/how-tos/gpu-support/
+    # However, for macOS, you will need to either run ollama outside a container or use `docker model`
+    # (beta feature available as of 2025-03-31) instead of this container service.
+    container_name: ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ./health-models:/root/health-models
+    # Change the model name below to switch the default model (e.g. from "llama3.2:1b" to "llama3.2" to switch from 1B to 3B)
+    entrypoint: /root/health-models/entrypoint.sh llama3.2:1b
